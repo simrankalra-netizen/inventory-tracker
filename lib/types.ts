@@ -8,7 +8,7 @@ export type ItemType = { id: string; name: string; unit: string; details: string
 export type Setup = {
   businessName: string;
   ownerName?: string; // optional so data saved before this field existed still loads
-  logo: string; // small image saved as a data URL
+  logo?: string; // no longer asked for; kept so setups saved with a logo still show it
   description: string;
   businessLabel: string;
   locations: Location[];

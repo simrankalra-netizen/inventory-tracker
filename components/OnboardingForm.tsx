@@ -1,30 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { checkDescription, MAX_DESCRIPTION, readLogo } from "@/lib/checks";
+import { checkDescription, MAX_DESCRIPTION } from "@/lib/checks";
 import type { SuggestResponse } from "@/lib/setupSchema";
 import { newId, type Setup } from "@/lib/types";
 
 export default function OnboardingForm({ onDone }: { onDone: (setup: Setup) => void }) {
   const [name, setName] = useState("");
   const [owner, setOwner] = useState("");
-  const [logo, setLogo] = useState("");
   const [description, setDescription] = useState("");
-  const [errors, setErrors] = useState<{ name?: string; owner?: string; logo?: string; description?: string }>({});
+  const [errors, setErrors] = useState<{ name?: string; owner?: string; description?: string }>({});
   const [aiMessage, setAiMessage] = useState<{ kind: "unclear" | "error"; text: string } | null>(null);
   const [loading, setLoading] = useState(false);
-
-  async function pickLogo(file: File | undefined) {
-    if (!file) return;
-    const result = await readLogo(file);
-    if ("error" in result) {
-      // Keep a good logo the owner already picked; only explain why the new file was refused.
-      setErrors((e) => ({ ...e, logo: logo ? `${result.error} Your previous logo is kept.` : result.error }));
-    } else {
-      setLogo(result.logo);
-      setErrors((e) => ({ ...e, logo: undefined }));
-    }
-  }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -32,11 +19,10 @@ export default function OnboardingForm({ onDone }: { onDone: (setup: Setup) => v
     const next = {
       name: name.trim() ? undefined : "Please enter your business name.",
       owner: owner.trim() ? undefined : "Please enter your name.",
-      logo: logo ? undefined : errors.logo ?? "Please add your logo.",
       description: checkDescription(description) ?? undefined,
     };
     setErrors(next);
-    if (next.name || next.owner || next.logo || next.description) return;
+    if (next.name || next.owner || next.description) return;
 
     setLoading(true);
     let data: SuggestResponse;
@@ -57,7 +43,6 @@ export default function OnboardingForm({ onDone }: { onDone: (setup: Setup) => v
     onDone({
       businessName: name.trim(),
       ownerName: owner.trim(),
-      logo,
       description: description.trim(),
       businessLabel: data.setup.businessLabel,
       locations: data.setup.locations.map((l) => ({ ...l, id: newId() })),
@@ -92,23 +77,6 @@ export default function OnboardingForm({ onDone }: { onDone: (setup: Setup) => v
           />
           {errors.owner && <p className="mt-1 text-sm text-red-600">{errors.owner}</p>}
         </label>
-
-        <div>
-          <span className="font-medium">Logo</span>
-          <div className="mt-1 flex items-center gap-3">
-            {logo ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={logo} alt="Your logo" className="h-14 w-14 rounded-lg border object-contain" />
-            ) : (
-              <div className="h-14 w-14 rounded-lg border border-dashed border-slate-300" />
-            )}
-            <label className="cursor-pointer rounded-lg border border-slate-300 px-4 py-3 font-medium">
-              {logo ? "Change logo" : "Choose logo"}
-              <input type="file" accept="image/*" className="sr-only" onChange={(e) => pickLogo(e.target.files?.[0])} />
-            </label>
-          </div>
-          {errors.logo && <p className="mt-1 text-sm text-red-600">{errors.logo}</p>}
-        </div>
 
         <label className="block">
           <span className="font-medium">Describe your business in 1–2 sentences</span>

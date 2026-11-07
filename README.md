@@ -4,6 +4,8 @@ A phone-first stock tracker for small Indian businesses. The owner describes the
 
 Hackathon MVP built with Next.js, deployable to Vercel.
 
+> **Logo upload is turned off for now** (7 Nov 2026). The setup form asks only for business name, owner name and a description, and the dashboard header shows the name and owner. The original job and tests below still mention a logo.
+
 ## Job to be done
 
 > When I set up inventory tracking for my business, I want to describe my business in my own words and get a dashboard with my name and logo that tracks where my stock is and how it moves, so I can know what is in which godown or with which worker, and catch missing or damaged units, without keeping notes by hand.
@@ -23,7 +25,7 @@ Hackathon MVP built with Next.js, deployable to Vercel.
 | 1. AI setup | **Not yet verified.** The full flow runs end-to-end, but no working AI key has been available yet, so the real AI answer and the 30-second timing are untested. |
 | 2. Movements | Counting logic verified on a phone-sized screen with a hand-made uniform setup, plus automatic tests. Needs a re-run on an AI-made setup. |
 | 3a. Vague description | Pass |
-| 3b. Non-image logo | Pass |
+| 3b. Non-image logo | Passed before logo upload was turned off. Not applicable now. |
 | 3c. Receive more than sent | Logic verified with a hand-made setup, plus automatic tests: *"You can't receive 51 Shirts from Embroidery Worker. Only 50 Shirts are with Embroidery Worker right now."* |
 
 ## Current workflow → future workflow
@@ -42,12 +44,12 @@ Hackathon MVP built with Next.js, deployable to Vercel.
 
 | Stage | What happens | Where |
 |---|---|---|
-| **Input** | Business name, owner name, logo file, 1–2 sentence description | [`components/OnboardingForm.tsx`](components/OnboardingForm.tsx) |
-| **Logic (before AI)** | Checks that the names are filled in, the logo is a real image that opens (then shrinks it), and the description isn't empty, too short or random letters | [`lib/checks.ts`](lib/checks.ts) |
+| **Input** | Business name, owner name, 1–2 sentence description | [`components/OnboardingForm.tsx`](components/OnboardingForm.tsx) |
+| **Logic (before AI)** | Checks that the names are filled in and the description isn't empty, too short or random letters | [`lib/checks.ts`](lib/checks.ts) |
 | **AI** | The description is sent to Claude (Opus 5.5, low effort), which must answer in a fixed shape: `ok` or `unclear`, a business label, 1–6 locations tagged `own_storage` or `job_worker`, and 1–5 item types with a unit and up to 4 details | [`app/api/suggest-setup/route.ts`](app/api/suggest-setup/route.ts), [`lib/setupSchema.ts`](lib/setupSchema.ts) |
 | **Logic (after AI)** | Checks the answer's shape and sizes. If it's "unclear" or anything is off, it stops and shows a message instead of a setup | `problemWithSetup` in [`lib/setupSchema.ts`](lib/setupSchema.ts) |
 | **Action** | Saves the setup in the browser (`localStorage`) | [`lib/storage.ts`](lib/storage.ts) |
-| **Output** | A dashboard with the logo, name and owner, plus a *"Set up as … suggested from: '…'"* banner so a wrong guess is easy to spot | [`components/Dashboard.tsx`](components/Dashboard.tsx) |
+| **Output** | A dashboard with the business name and owner, plus a *"Set up as … suggested from: '…'"* banner so a wrong guess is easy to spot | [`components/Dashboard.tsx`](components/Dashboard.tsx) |
 
 ### Flow B: Movements (no AI)
 
@@ -68,7 +70,7 @@ Stock is never stored as a number. It is always recalculated from the logbook of
 **Everything else is plain code,** because it must be exact and give the same answer every time. That covers stock counting, pending amounts, blocking impossible movements, file and text checks, and saving.
 
 **What stays with the owner:**
-- Writing the description and choosing the name and logo.
+- Writing the description and choosing the business name.
 - Judging the suggested setup: they can **Start again** (with a confirmation step) or **+ Add a place or worker** the AI missed.
 - Recording every movement. The app never records or guesses anything on its own.
 - Deciding whether pending units are damaged or still on their way.
@@ -89,8 +91,6 @@ Stock is never stored as a number. It is always recalculated from the logbook of
 | Failure | What happens |
 |---|---|
 | Name or owner name empty | "Please enter your business name." / "Please enter your name." |
-| Logo isn't an image (.pdf, .txt) | "This file is not an image. Please choose a JPG, PNG or WEBP." A good logo already chosen is kept. |
-| Logo is an image but can't be opened, or is over 10 MB | "We couldn't open this image…" / "This image is too big…" |
 | Description empty, too short or gibberish | "Please tell us a bit more, e.g. what you sell and where you keep stock." AI is not called. |
 | AI can't understand the description | Its one-line question is shown and **no setup is created** |
 | AI key missing, wrong or refused, out of credit, or the service is busy | A specific message (e.g. "The AI key was refused… Run: npm run check-key"). The form keeps everything typed. |

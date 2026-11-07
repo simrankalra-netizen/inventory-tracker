@@ -52,8 +52,10 @@ export default function Dashboard({
   return (
     <main className="mx-auto w-full max-w-md px-4 pb-28 pt-4">
       <header className="flex items-center gap-3">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={setup.logo} alt="" className="h-12 w-12 rounded-lg border object-contain" />
+        {setup.logo && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={setup.logo} alt="" className="h-12 w-12 rounded-lg border object-contain" />
+        )}
         <div>
           <h1 className="text-xl font-bold leading-tight">{setup.businessName}</h1>
           {setup.ownerName && <p className="text-sm text-slate-600">Owner: {setup.ownerName}</p>}
